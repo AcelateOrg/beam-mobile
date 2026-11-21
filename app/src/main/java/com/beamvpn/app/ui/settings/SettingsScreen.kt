@@ -256,7 +256,7 @@ private fun AppPage(settings: AppSettings, store: SettingsStore) {
         }
     }
     SettingsCard(BeamIcons.Zap, "Пинг и диагностика", "Методы проверки задержки и доступности серверов") {
-        SettingsRow(BeamIcons.Servers, "Проверка серверов", "Метод проверки узлов в списке.") {
+        SettingsRow(BeamIcons.Servers, "Проверка серверов", "HTTP — запрос через сервер. TCP — только установка соединения, без проверки VPN.") {
             Segmented(PingMethod.entries, settings.serverCheck, { it.title }) { v -> store.update { it.copy(serverCheck = v) } }
         }
         RowDivider()
@@ -374,8 +374,8 @@ private fun ConnectionPage(settings: AppSettings, store: SettingsStore) {
             editingFragment = false
         }
     }
-    SettingsCard(BeamIcons.Layers, "Мультиплексирование", null) {
-        SwitchRow(BeamIcons.Layers, "Mux", "Несколько соединений в одном. Сервер должен это поддерживать.", settings.mux) { v ->
+    SettingsCard(BeamIcons.Layers, "Мультиплексирование · Mux", "Объединяет несколько потоков в одно соединение с сервером") {
+        SwitchRow(BeamIcons.Layers, "Использовать Mux", "Требуется поддержка сервера. Не применяется к XTLS Vision и Hysteria2.", settings.mux) { v ->
             store.update { it.copy(mux = v) }
         }
     }

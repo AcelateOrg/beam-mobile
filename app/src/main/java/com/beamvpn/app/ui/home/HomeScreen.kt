@@ -92,7 +92,6 @@ fun HomeScreen(
         onAddProfile = onAddProfile,
         onOpenProfiles = onOpenProfiles,
         onPickServer = onPickServer,
-        onSelectServer = viewModel::selectNode,
     )
 }
 
@@ -127,7 +126,6 @@ fun HomeContent(
     onAddProfile: () -> Unit = {},
     onOpenProfiles: () -> Unit = {},
     onPickServer: () -> Unit = {},
-    onSelectServer: (String) -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize()) {
         ProfileCard(state.activeProfile, onAddProfile, onOpenProfiles, Modifier.padding(12.dp))
@@ -145,25 +143,12 @@ fun HomeContent(
             // Same rule as --connect-btn-size in the desktop's narrow window.
             val buttonSize = minOf(240.dp, maxWidth * 0.6f, maxHeight * 0.45f)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val radialItems = remember(state.groups, state.selectedNodeId, state.pings) {
-                    buildRadialItems(state.groups, state.selectedNodeId, state.pings)
-                }
                 // During a live server switch the button replays the connecting animation, like desktop.
                 val switching = state.switch.phase == SwitchPhase.Switching
                 ConnectButton(
                     phase = if (switching) ConnectionPhase.Connecting else state.phase,
                     onClick = onToggle,
                     size = buttonSize,
-                    radialItems = radialItems,
-                    onPickServer = { item ->
-                        if (item.isMore) {
-                            onPickServer()
-                        } else {
-                            if (!item.current) onSelectServer(item.id)
-                            // Picking a server while the VPN is off means "connect there".
-                            if (state.phase == ConnectionPhase.Disconnected || state.phase == ConnectionPhase.Error) onToggle()
-                        }
-                    },
                 )
                 Spacer(Modifier.height(52.dp))
                 StatusText(if (switching) state.copy(phase = ConnectionPhase.Connecting) else state, state.switch.phase)

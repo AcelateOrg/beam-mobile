@@ -40,8 +40,8 @@ private data class ConnectionOptions(
         .apply { if (fragmentation == CUSTOM) put("fragmentCustom", fragmentCustom.toJson()) }
         .put("mux", mux)
         .put("autoRefresh", autoRefresh)
-        // HTTP server checks are real requests through each server, falling back to TCP when one cannot be made.
-        .put("nodePing", if (serverCheck == PingMethod.Tcp) "tcp" else "auto")
+        // HTTP must measure a real request: never silently substitute a TCP handshake.
+        .put("nodePing", if (serverCheck == PingMethod.Tcp) "tcp" else "protocol")
         .put("connectionPing", if (connectionPing == PingMethod.Tcp) "tcp" else "http")
         .toString()
 

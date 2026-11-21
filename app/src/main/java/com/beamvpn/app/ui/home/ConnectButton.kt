@@ -13,6 +13,9 @@ import androidx.compose.material3.toPath
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
@@ -49,12 +51,8 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
@@ -92,9 +90,6 @@ fun ConnectButton(
     size: Dp,
     modifier: Modifier = Modifier,
     noInternet: Boolean = false,
-    /** Servers on the hold-to-pick ring; fewer than two disables the ring. */
-    radialItems: List<RadialItem> = emptyList(),
-    onPickServer: (RadialItem) -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val effects = BeamTheme.effects
@@ -130,26 +125,8 @@ fun ConnectButton(
     }
 
     var pressed by remember { mutableStateOf(false) }
-    val radial = remember { RadialState() }
-    val radialScope = rememberCoroutineScope()
-    val haptic = LocalHapticFeedback.current
-    val density = LocalDensity.current
-    val ringGeometry = rememberRadialGeometry()
     val currentOnClick by rememberUpdatedState(onClick)
-    val currentItems by rememberUpdatedState(radialItems)
-    val currentOnPick by rememberUpdatedState(onPickServer)
-    val currentSize by rememberUpdatedState(size)
-    var origin by remember { mutableStateOf(Offset.Zero) }
-    val controller = remember {
-        RadialController(
-            state = radial,
-            scope = radialScope,
-            items = { currentItems },
-            geometry = { center -> ringGeometry(center, with(density) { currentSize.toPx() } / 2f) },
-            haptic = { opening -> haptic.performHapticFeedback(if (opening) HapticFeedbackType.LongPress else HapticFeedbackType.TextHandleMove) },
-            onPick = { currentOnPick(it) },
-        )
-    }
+    val currentLoading by rememberUpdatedState(loading)
     val scale by animateFloatAsState(
         targetValue = when {
             loading -> 0.96f
@@ -265,8 +242,6 @@ fun ConnectButton(
             ParticleLayer(phase = phase, accent = colors.primary, buttonSize = size, modifier = Modifier.matchParentSize())
         }
 
-        ServerRadialOverlay(radial, radialItems, connected)
-
         if (reduced) {
             // No blur: the resting shadow as a soft gradient disc under the button.
             Spacer(
@@ -326,23 +301,22 @@ fun ConnectButton(
         Box(
             Modifier
                 .matchParentSize()
-                .onGloballyPositioned { origin = it.positionInWindow() }
-                .radialGesture(
-                    enabled = { !loading },
-                    usable = { !loading && currentItems.size >= 2 },
-                    toWindow = { it + origin },
-                    onPressed = { pressed = it },
-                    onClick = { currentOnClick() },
-                    onOpen = { finger ->
-                        controller.open(origin + Offset(with(density) { currentSize.toPx() } / 2f, with(density) { currentSize.toPx() } / 2f), finger)
-                    },
-                    onMove = controller::move,
-                    onRelease = controller::release,
-                    onCancel = controller::cancel,
-                )
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false)
+                        if (currentLoading) {
+                            waitForUpOrCancellation()
+                            return@awaitEachGesture
+                        }
+                        pressed = true
+                        val up = waitForUpOrCancellation()
+                        pressed = false
+                        if (up != null) currentOnClick()
+                    }
+                }
                 .semantics(mergeDescendants = true) {
                     role = Role.Button
-                    onClick { if (!loading) currentOnClick(); true }
+                    onClick { if (!currentLoading) currentOnClick(); true }
                 }
                 .graphicsLayer {
                     val s = buttonScale()

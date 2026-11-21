@@ -92,14 +92,19 @@ fun BeamApp(sharedLink: String? = null, onSharedLinkHandled: () -> Unit = {}) {
     var reselect by rememberSaveable { mutableStateOf(0) }
     var adding by rememberSaveable { mutableStateOf(false) }
     var prefill by rememberSaveable { mutableStateOf("") }
+    val snackbar = remember { SnackbarHostState() }
     LaunchedEffect(sharedLink) {
         if (sharedLink != null) {
-            prefill = sharedLink
-            adding = true
+            val link = sharedLink
             onSharedLinkHandled()
+            val err = viewModel.importProfile(link)
+            if (err != null) {
+                prefill = unwrapBeamImportUrl(link)
+                adding = true
+                snackbar.showSnackbar(err)
+            }
         }
     }
-    val snackbar = remember { SnackbarHostState() }
     val select: (BeamTab) -> Unit = {
         if (it == tab) reselect++
         tab = it
@@ -233,6 +238,25 @@ fun BeamApp(sharedLink: String? = null, onSharedLinkHandled: () -> Unit = {}) {
             importFile = viewModel::importBeam,
         )
     }
+}
+
+private fun unwrapBeamImportUrl(raw: String): String {
+    val trimmed = raw.trim()
+    if (!trimmed.startsWith("beam:", ignoreCase = true)) return trimmed
+    return runCatching {
+        val uri = android.net.Uri.parse(trimmed)
+        val queryUrl = uri.getQueryParameter("url")?.trim()
+        if (!queryUrl.isNullOrEmpty()) return@runCatching queryUrl
+        val host = uri.host?.lowercase()
+        if (host == "import" || host == "add") {
+            val path = uri.encodedPath?.trimStart('/') ?: ""
+            if (path.startsWith("http://", ignoreCase = true) || path.startsWith("https://", ignoreCase = true)) {
+                val q = uri.encodedQuery
+                return@runCatching if (!q.isNullOrEmpty()) "$path?$q" else path
+            }
+        }
+        trimmed
+    }.getOrDefault(trimmed)
 }
 
 @Composable

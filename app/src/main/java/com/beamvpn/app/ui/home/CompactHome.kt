@@ -132,19 +132,7 @@ fun CompactHomeScreen(viewModel: BeamViewModel = viewModel(), onAddProfile: () -
     var editing by rememberSaveable { mutableStateOf<Pair<String, String>?>(null) }
 
     val rows = remember(state.profiles, state.nodes, folds.value) { buildRows(state.profiles, state.nodes, folds.value) }
-    val currentRows by rememberUpdatedState(rows)
     val allCollapsed = state.profiles.isNotEmpty() && state.profiles.all { folds.value.profile(it.id) }
-
-    /** Unfolds the way to a profile (and one of its groups) and scrolls there once the list has it. */
-    fun reveal(profileId: String, group: NodeGroup?, key: String) {
-        folds.reveal(profileId, group)
-        scope.launch {
-            val index = withTimeoutOrNull(1_000) {
-                snapshotFlow { currentRows.indexOfFirst { it.key == key } }.first { it >= 0 }
-            } ?: return@launch
-            listState.animateScrollToItem(index, scrollOffset = -SCROLL_MARGIN_PX)
-        }
-    }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 24.dp + com.beamvpn.app.ui.components.LocalBottomInset.current)) {
@@ -153,14 +141,6 @@ fun CompactHomeScreen(viewModel: BeamViewModel = viewModel(), onAddProfile: () -
                     CompactRow.Hero -> Hero(
                         state = state,
                         onToggle = onToggle,
-                        onPickServer = { item ->
-                            if (item.isMore) {
-                                state.activeProfile?.let { reveal(it.id, null, headerKey(it.id)) }
-                            } else {
-                                if (!item.current) viewModel.selectNode(item.id)
-                                if (state.phase == ConnectionPhase.Disconnected || state.phase == ConnectionPhase.Error) onToggle()
-                            }
-                        },
                     )
                     CompactRow.Title -> ListTitle(
                         allCollapsed = allCollapsed,
@@ -711,21 +691,16 @@ private fun ServerRow(
  * button's glow needs to fade out before the list's edge, which would otherwise cut it off.
  */
 @Composable
-private fun Hero(state: VpnUiState, onToggle: () -> Unit, onPickServer: (RadialItem) -> Unit) {
+private fun Hero(state: VpnUiState, onToggle: () -> Unit) {
     val switching = state.switch.phase == SwitchPhase.Switching
     Column(
         Modifier.fillMaxWidth().padding(top = 112.dp, bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val radialItems = remember(state.groups, state.selectedNodeId, state.pings) {
-            buildRadialItems(state.groups, state.selectedNodeId, state.pings)
-        }
         ConnectButton(
             phase = if (switching) ConnectionPhase.Connecting else state.phase,
             onClick = onToggle,
             size = 200.dp,
-            radialItems = radialItems,
-            onPickServer = onPickServer,
         )
         Spacer(Modifier.height(48.dp))
         StatusText(if (switching) state.copy(phase = ConnectionPhase.Connecting) else state, state.switch.phase)

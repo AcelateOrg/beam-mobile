@@ -95,7 +95,7 @@ data class AppSettings(
     /** Rebuilds the core when the tunnel stops passing traffic or the phone changes networks. */
     val autoReconnect: Boolean = true,
     val autoUpdateSubscriptions: Boolean = true,
-    val serverCheck: PingMethod = PingMethod.Tcp,
+    val serverCheck: PingMethod = PingMethod.Http,
     val connectionPing: PingMethod = PingMethod.Http,
     val sendHwid: Boolean = true,
     /** Send [hwidValue] instead of the device hash. */

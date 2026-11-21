@@ -62,6 +62,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.beamvpn.app.ui.components.CountryFlag
 import com.beamvpn.app.ui.home.BeamViewModel
 import com.beamvpn.app.ui.icons.BeamIcons
+import com.beamvpn.app.ui.settings.SettingsCard
 import com.beamvpn.app.ui.theme.BeamTheme
 import com.beamvpn.app.ui.theme.scaled
 import com.beamvpn.app.vpn.NodeConfig
@@ -207,7 +208,7 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheet,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
     ) {
         Column(Modifier.fillMaxHeight(0.92f).navigationBarsPadding().imePadding()) {
@@ -219,8 +220,8 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
             ) {
                 Icon(BeamIcons.Sliders, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    c?.name?.ifEmpty { null } ?: "Конфигурация",
-                    fontSize = 18.sp,
+                    "Конфигурация сервера",
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -241,7 +242,7 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
             }
 
             when {
-                failure != null -> Box(Modifier.weight(1f).fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                failure != null && c == null -> Box(Modifier.weight(1f).fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
                     Text(failure!!, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                 }
                 c == null -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -261,8 +262,11 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
 
                     Column(
                         Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
                     ) {
+                        failure?.let { message ->
+                            Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                        }
                         Section("Основное", BeamIcons.Sliders) {
                             TextFieldRow(
                                 label = "Название",
@@ -357,7 +361,7 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
                             ) {
                                 OutlinedButton(
                                     onClick = { pickingEntry = true },
-                                    shape = RoundedCornerShape(scaled(14.dp)),
+                                    shape = MaterialTheme.shapes.large,
                                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                                 ) {
                                     Text(
@@ -395,15 +399,16 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
 
                     val dirty = name != c.name || pinned != c.isPinned ||
                         overrides.keys != c.overrides.keys || overrides.any { (k, v) -> jsonKey(v) != jsonKey(c.overrides[k]) }
-                    Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedButton(
                             onClick = ::close,
-                            shape = RoundedCornerShape(scaled(14.dp)),
+                            shape = MaterialTheme.shapes.large,
                             modifier = Modifier.weight(1f).height(52.dp),
                         ) { Text("Отмена") }
                         Button(
                             onClick = {
                                 saving = true
+                                failure = null
                                 scope.launch {
                                     val error = viewModel.saveNodeConfig(profileId, nodeId, name.trim(), overrides.toMap(), pinned)
                                     saving = false
@@ -411,7 +416,7 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
                                 }
                             },
                             enabled = dirty && !saving,
-                            shape = RoundedCornerShape(scaled(14.dp)),
+                            shape = MaterialTheme.shapes.large,
                             colors = ButtonDefaults.buttonColors(containerColor = extra.highlight, contentColor = extra.onHighlight),
                             modifier = Modifier.weight(1f).height(52.dp),
                         ) {
@@ -443,16 +448,7 @@ fun NodeEditorSheet(profileId: String, nodeId: String, viewModel: BeamViewModel,
 
 @Composable
 private fun Section(title: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Icon(icon, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
-            Text(title.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.6.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
-        }
-        Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(scaled(16.dp))).background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-            content = content,
-        )
-    }
+    SettingsCard(icon = icon, title = title, content = content)
 }
 
 @Composable
@@ -461,18 +457,18 @@ private fun RowSeparator() = HorizontalDivider(Modifier.padding(horizontal = 14.
 /** Label, help, the changed dot and reset; [control] goes under them, full width, where a thumb can reach it. */
 @Composable
 private fun FieldRowFrame(label: String, help: String, changed: Boolean, onReset: (() -> Unit)?, control: @Composable () -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 6.dp, bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Column(Modifier.weight(1f).padding(top = 6.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                     if (changed) Box(Modifier.size(6.dp).background(BeamTheme.extra.highlight, CircleShape))
                 }
-                Text(help, fontSize = 11.sp, lineHeight = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(help, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (onReset != null && changed) ResetButton(onReset)
         }
-        Box(Modifier.padding(end = 10.dp)) { control() }
+        Box(Modifier.fillMaxWidth()) { control() }
     }
 }
 
@@ -500,11 +496,11 @@ private fun TextFieldRow(
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            placeholder = { Text(placeholder, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            placeholder = { Text(placeholder, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             singleLine = true,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+            textStyle = MaterialTheme.typography.bodyLarge,
             keyboardOptions = KeyboardOptions(keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Ascii, imeAction = ImeAction.Next),
-            shape = RoundedCornerShape(scaled(14.dp)),
+            shape = MaterialTheme.shapes.large,
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = extra.highlight.copy(alpha = 0.7f), unfocusedBorderColor = extra.border, cursorColor = extra.highlight),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -514,16 +510,16 @@ private fun TextFieldRow(
 @Composable
 private fun SwitchFieldRow(label: String, help: String, checked: Boolean, changed: Boolean, onReset: (() -> Unit)?, onChange: (Boolean) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable { onChange(!checked) }.padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+        Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable { onChange(!checked) }.padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 if (changed) Box(Modifier.size(6.dp).background(BeamTheme.extra.highlight, CircleShape))
             }
-            Text(help, fontSize = 11.sp, lineHeight = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(help, fontSize = 14.sp, lineHeight = 20.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (onReset != null && changed) ResetButton(onReset)
         Switch(
@@ -551,7 +547,7 @@ private fun SelectFieldRow(
         Box {
             OutlinedButton(
                 onClick = { open = true },
-                shape = RoundedCornerShape(scaled(14.dp)),
+                shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) {
                 Text(if (value.isEmpty()) noneLabel else optionLabel(value), modifier = Modifier.weight(1f), maxLines = 1)
@@ -588,7 +584,7 @@ private fun EntryPickerSheet(viewModel: BeamViewModel, exclude: Pair<String, Str
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheet,
-        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
     ) {
         Column(Modifier.fillMaxHeight(0.8f).navigationBarsPadding().padding(horizontal = 12.dp)) {
