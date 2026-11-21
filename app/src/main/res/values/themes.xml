@@ -1,0 +1,7 @@
+<resources>
+    <!-- Window colour matches the shell so there is no flash before Compose draws. -->
+    <style name="Theme.Beam" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/beam_shell</item>
+    </style>
+    <color name="beam_shell">#FF121215</color>
+</resources>

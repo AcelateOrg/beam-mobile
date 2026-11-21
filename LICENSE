@@ -1,0 +1,108 @@
+Beam Source License 1.0
+
+Copyright (c) 2026 Acelate. All rights reserved.
+
+This is a source-available license. It is NOT an open source license.
+A Russian translation is provided in LICENSE.ru.md for convenience; if the two
+texts differ, this English text prevails.
+
+1. Definitions
+
+   "Licensor" means Acelate.
+   "Software" means the source code, object code, build scripts, documentation,
+   images, icons and other files in this repository, and any build made from
+   them, excluding Third-Party Components.
+   "Third-Party Components" means software, fonts and data owned by others, and
+   components the Licensor publishes under a separate open source license,
+   each distributed under its own license (see section 8).
+   "Official Build" means a build of the Software published and signed by the
+   Licensor through its official channels.
+   "You" means the individual or legal entity exercising rights under this
+   license.
+
+2. What you may do
+
+   Subject to the conditions of this license, the Licensor grants You a
+   worldwide, non-exclusive, non-transferable, non-sublicensable, royalty-free
+   license to:
+
+   (a) Use. Install and use Official Builds for any purpose, including at work
+       and within an organization.
+   (b) Read. View, study and audit the source code of the Software.
+   (c) Build for yourself. Compile the Software and run the result on devices
+       You own or control, for Your own personal or internal use, including to
+       test and verify the Software.
+   (d) Modify for yourself. Make changes to the Software for the purposes in
+       (c) and for preparing Contributions.
+   (e) Contribute. Submit changes to the Licensor ("Contributions"), for
+       example as pull requests, under the terms of CLA.md.
+   (f) Fork on GitHub. Create a fork of this repository on GitHub as permitted
+       by the GitHub Terms of Service, solely to prepare and submit
+       Contributions.
+   (g) Quote. Reproduce short excerpts of the source code in discussions,
+       issues, articles and reviews, with a link to this repository.
+   (h) Recommend. VPN and proxy service providers may recommend the Software,
+       link to Official Builds and use the documented integration features of
+       the Software (for example, subscription headers) for their services.
+
+3. What you may not do
+
+   Unless the Licensor has given You prior written permission, You may not:
+
+   (a) distribute, publish, sell, rent, lend or otherwise make available the
+       Software or any modified version of it, in source or binary form, to any
+       third party, except as permitted in section 2(e)-(g);
+   (b) publish builds, installers, packages or app store listings of the
+       Software, modified or not, including in package repositories, mirrors
+       and stores;
+   (c) rebrand the Software or create a product that is derived from it,
+       including a product under a different name, logo or design;
+   (d) use the Software, or any substantial part of its source code, design or
+       assets, to create, train or improve a competing product or service;
+   (e) offer the Software as a hosted or managed service to third parties;
+   (f) remove, alter or obscure any copyright, license or trademark notice;
+   (g) circumvent any signature, update or integrity check of the Software in
+       order to distribute it.
+
+4. Trademarks
+
+   This license grants no rights to the names "Beam" or "Acelate", or to their
+   logos and other brand features, except as needed to describe the origin of
+   the Software. See TRADEMARKS.md.
+
+5. Contributions
+
+   Contributions are accepted only under CLA.md. By submitting a Contribution
+   You confirm that You have the right to do so and agree to the terms of
+   CLA.md.
+
+6. Termination
+
+   If You violate this license, Your rights under it end automatically. If it
+   is Your first violation and You fully stop and fix it within 30 days after
+   receiving notice from the Licensor, Your rights are reinstated. Sections 3,
+   4, 7 and 8 survive termination.
+
+7. No warranty, no liability
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. TO THE MAXIMUM EXTENT
+   PERMITTED BY LAW, IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM,
+   DAMAGES OR OTHER LIABILITY ARISING FROM OR IN CONNECTION WITH THE SOFTWARE
+   OR ITS USE.
+
+8. Third-Party and Separately Licensed Components
+
+   The Software includes and depends on Third-Party Components, such as
+   Xray-core (Mozilla Public License 2.0) and beam-tun (Mozilla Public License
+   2.0). Each Third-Party Component is licensed under its own license, which
+   is listed in the application (Settings > About > Licenses) and in the
+   component's own repository. Nothing in this license limits the rights You
+   have under those licenses.
+
+9. Other
+
+   The Licensor reserves all rights not expressly granted. If any provision of
+   this license is held unenforceable, the remaining provisions stay in
+   effect. For permissions beyond this license, contact the Licensor.
